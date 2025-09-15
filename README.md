@@ -3,7 +3,7 @@
 A fun Flask web app that uses a Hugging Face image classification model to tell whether an uploaded image **is a hot dog** or **not a hot dog**.  
 If the image is not a hot dog, the app also shows the top predicted class (e.g., pizza, burger).
 
-![Demo Screenshot](nothotdog/hot_Dog.png)
+![Demo Screenshot](nothotdog/hot_dog.png)
 ![Demo Screenshot](nothotdog/pizza.png)
 ![Demo Screenshot](nothotdog/pasta.png)
 ![Demo Screenshot](nothotdog/hamburger.png)
