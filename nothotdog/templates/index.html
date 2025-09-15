@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hot Dog or Not?</title>
+  <style>
+    :root{
+      --bg: #0f1220;
+      --card: #151a2e;
+      --muted: #9aa4b2;
+      --text: #eef2ff;
+      --accent: #7c5cff;
+      --accent-2: #00d4ff;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:
+        radial-gradient(1200px 600px at 10% -20%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(1000px 600px at 110% 20%, rgba(0,212,255,.20), transparent 60%),
+        var(--bg);
+      color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      display:flex; align-items:center; justify-content:center; padding:28px;
+    }
+
+    .wrap{width:100%; max-width:960px}
+    .title{
+      text-align:center; margin-bottom:22px;
+    }
+    .title h1{
+      margin:0 0 8px; font-size: clamp(28px, 3.5vw, 42px);
+      letter-spacing:.3px;
+      background: linear-gradient(90deg, #fff, #cbd5ff 40%, #9ae6ff 80%);
+      -webkit-background-clip: text; background-clip:text; color:transparent;
+    }
+    .title p{margin:0; color:var(--muted)}
+
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: 1.1fr .9fr;
+    }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--card);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    /* Upload area */
+    .drop{
+      border: 2px dashed rgba(255,255,255,.15);
+      border-radius: 14px;
+      padding: 20px;
+      text-align:center;
+      transition: .25s ease;
+      background: rgba(255,255,255,.02);
+    }
+    .drop.dragover{
+      border-color: var(--accent);
+      background: rgba(124,92,255,.08);
+      transform: translateY(-2px);
+    }
+    .drop h3{margin:0 0 6px; font-weight:600}
+    .drop p{margin:4px 0 14px; color:var(--muted); font-size:14px}
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+    }
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer;
+      font-weight:600; transition:.2s ease; min-width:120px;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.28); }
+    .btn.primary{
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border: none; color:#0b0f1a;
+    }
+    input[type="file"]{ display:none }
+
+    .preview{
+      margin-top:14px; display:flex; align-items:center; justify-content:center;
+      min-height: 320px; background: rgba(0,0,0,.15); border-radius:12px; overflow:hidden;
+    }
+    .preview img{ max-width:100%; max-height:500px; display:block; }
+
+    /* Result panel */
+    .resultHeader{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px }
+    .badge{
+      padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; letter-spacing:.3px;
+      background: rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16);
+    }
+    .badge.ok{ background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.35); color:#b7f7cf}
+    .badge.warn{ background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.35); color:#ffe2b4}
+    .badge.err{ background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.35); color:#ffc9c9}
+
+    .big{
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight:800; margin:0;
+    }
+    .muted{ color: var(--muted); font-size:14px; margin:0 }
+
+    .bar{
+      height: 12px; background: rgba(255,255,255,.1); border-radius: 999px; overflow:hidden; margin-top:10px;
+    }
+    .bar > div{
+      height:100%; width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width .45s ease;
+    }
+
+    .raw{
+      margin-top:14px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 12.5px; color:#d7e0ff; background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px; white-space: pre-wrap;
+      max-height: 220px; overflow:auto;
+    }
+
+    .spinner{
+      width:22px;height:22px;border-radius:50%;
+      border:3px solid rgba(255,255,255,.18);
+      border-top-color: #fff; animation: spin .8s linear infinite; display:inline-block; vertical-align:middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
+
+    .footer{
+      margin-top:14px; text-align:center; color:var(--muted); font-size:12px;
+    }
+    .sr{position:absolute;left:-9999px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>Hot Dog or Not?</h1>
+      <p>Upload an image to classify it with the Hugging Face model.</p>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Upload + Preview -->
+      <section class="card">
+        <form id="uploadForm" enctype="multipart/form-data" class="drop" aria-label="Upload image">
+          <h3>Drop an image here</h3>
+          <p>or use the buttons below</p>
+          <div class="controls">
+            <label class="btn">
+              Choose Image
+              <input id="fileInput" type="file" name="file1" accept="image/*" />
+            </label>
+            <button class="btn primary" id="submitBtn" type="submit">
+              <span id="submitText">Classify</span>
+              <span id="submitSpin" class="spinner" style="display:none; margin-left:8px"></span>
+            </button>
+          </div>
+
+          <div class="preview" id="preview">
+            <span class="muted">No image selected</span>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right: Result -->
+      <section class="card">
+        <div class="resultHeader">
+          <h2 class="big" id="predLabel">Prediction</h2>
+          <span class="badge" id="statusBadge">–</span>
+        </div>
+        <p class="muted" id="predConf">Confidence: –</p>
+        <div class="bar"><div id="confBar"></div></div>
+        <div class="raw" id="rawBox" style="display:none;"></div>
+        <div class="footer">Powered by Flask & Hugging Face</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpin = document.getElementById('submitSpin');
+
+    const predLabel = document.getElementById('predLabel');
+    const statusBadge = document.getElementById('statusBadge');
+    const predConf = document.getElementById('predConf');
+    const confBar = document.getElementById('confBar');
+    const rawBox = document.getElementById('rawBox');
+
+    // Drag & drop handling
+    ;['dragenter','dragover'].forEach(evt =>
+      form.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation();
+        form.classList.add('dragover');
+      })
+    );
+    ;['dragleave','drop'].forEach(evt =>
+      form.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation();
+        form.classList.remove('dragover');
+      })
+    );
+    form.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files?.[0];
+      if (file) { setPreview(file); fileInput.files = e.dataTransfer.files; }
+    });
+
+    // File picker preview
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (file) setPreview(file);
+    });
+
+    function setPreview(file){
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.innerHTML = '';
+        const img = document.createElement('img');
+        img.alt = 'Selected image preview';
+        img.src = e.target.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setLoading(isLoading){
+      submitBtn.disabled = isLoading;
+      submitText.textContent = isLoading ? 'Classifying...' : 'Classify';
+      submitSpin.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    function setResult(ok, label, confidence, raw){
+      // label + confidence text
+      predLabel.textContent = label ? label.toUpperCase() : 'Prediction';
+      const pct = Number.isFinite(confidence) ? (confidence * 100).toFixed(1) : '–';
+      predConf.textContent = `Confidence: ${pct}%`;
+
+      // bar width
+      confBar.style.width = Number.isFinite(confidence) ? `${confidence*100}%` : '0%';
+
+      // badge style
+      statusBadge.classList.remove('ok','warn','err');
+      if (!Number.isFinite(confidence)) {
+        statusBadge.textContent = 'READY';
+      } else if (confidence >= 0.80) {
+        statusBadge.textContent = 'CONFIDENT';
+        statusBadge.classList.add('ok');
+      } else if (confidence >= 0.50) {
+        statusBadge.textContent = 'UNCERTAIN';
+        statusBadge.classList.add('warn');
+      } else {
+        statusBadge.textContent = 'LOW CONF';
+        statusBadge.classList.add('err');
+      }
+
+      // raw JSON
+      if (raw){
+        rawBox.style.display = 'block';
+        rawBox.textContent = JSON.stringify(raw, null, 2);
+      } else {
+        rawBox.style.display = 'none';
+        rawBox.textContent = '';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = fileInput.files?.[0];
+      if (!file) {
+        setResult(false, 'No file selected', NaN, null);
+        return;
+      }
+      setLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file1', file);
+        const res = await fetch("{{ url_for('upload') }}", { method: "POST", body: formData });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(`HTTP ${res.status} — ${t}`);
+        }
+        const data = await res.json();
+        // Expecting your Flask JSON: { label, confidence, raw }
+        setResult(true, data.label, data.confidence, data.raw);
+      } catch (err) {
+        setResult(false, 'Error', NaN, { error: String(err) });
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Initial state
+    setResult(false, '', NaN, null);
+  </script>
+</body>
+</html>
