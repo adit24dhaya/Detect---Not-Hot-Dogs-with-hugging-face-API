@@ -239,10 +239,14 @@
     }
 
     function setResult(ok, label, confidence, raw){
-      // label + confidence text
+      // Main label
       predLabel.textContent = label ? label.toUpperCase() : 'Prediction';
+
+      // Confidence and top class
       const pct = Number.isFinite(confidence) ? (confidence * 100).toFixed(1) : '–';
-      predConf.textContent = `Confidence: ${pct}%`;
+      const topClass = raw && raw.length > 0 ? raw[0].label : '';
+      predConf.textContent = `Confidence: ${pct}%` + (topClass ? ` · (${topClass})` : '');
+
 
       // bar width
       confBar.style.width = Number.isFinite(confidence) ? `${confidence*100}%` : '0%';

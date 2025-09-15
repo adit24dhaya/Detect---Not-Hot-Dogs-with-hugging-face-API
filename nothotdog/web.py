@@ -29,19 +29,31 @@ def upload():
     img_bytes = f.read()
     r = requests.post(
         API_URL,
-        headers={"Authorization": f"Bearer " + os.getenv("HUGGING_FACE_API_KEY"),
-                 "Content-Type": f.mimetype or "application/octet-stream"},
+        headers={
+            "Authorization": f"Bearer " + os.getenv("HUGGING_FACE_API_KEY"),
+            "Content-Type": f.mimetype or "application/octet-stream",
+        },
         data=img_bytes,
         timeout=60,
     )
-    preds = r.json()  # [{'label': 'hot dog', 'score': 0.94}, ...]
-    best = max(preds, key=lambda x: x["score"])
-    return jsonify({
-        "label": best["label"],
-        "confidence": round(best["score"], 4),
-        "raw": preds,  # keep if you want to inspect
-    })
+    preds = r.json()
+    preds = sorted(preds, key=lambda x: x["score"], reverse=True)
+    best = preds[0]
 
+    def norm(lbl: str) -> str:
+        return lbl.strip().lower().replace(" ", "_").replace("-", "_")
+
+    HOTDOG_LABELS = {"hot_dog", "hotdog"}
+
+    # Decide binary label
+    binary_label = "hot dog" if norm(best["label"]) in HOTDOG_LABELS else "not hot dog"
+
+    return jsonify({
+        "label": binary_label,                 # hot dog / not hot dog
+        "confidence": round(best["score"], 4), # confidence of top prediction
+        "top_class": best["label"],            # model’s actual top class (pizza, burger, etc.)
+        "raw": preds
+    })
 
 
 if __name__ == "__main__":
