@@ -25,3 +25,13 @@ def test_health_endpoint():
     assert resp.status_code == 200
     body = resp.get_json()
     assert "status" in body
+    assert "stats" in body
+
+
+def test_metrics_endpoint():
+    mod = load_module()
+    client = mod.app.test_client()
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert "requests_total" in body

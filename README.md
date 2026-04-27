@@ -18,7 +18,11 @@ If the image is not a hot dog, the app also shows the top predicted class (e.g.,
 - Confidence bar and status badges (**CONFIDENT / UNCERTAIN / LOW CONF**).
 - Upload validation (type + size) and clearer backend error handling.
 - Health endpoint for deployment checks: `GET /health`.
+- Metrics endpoint for request/inference/cache/error counters: `GET /metrics`.
 - Top-3 prediction payload returned from API for richer UI extensions.
+- In-memory result cache (image hash based) for faster repeat inferences.
+- Retry/backoff logic for transient Hugging Face API failures.
+- Batch API endpoint for multiple images: `POST /upload-batch`.
 - Raw JSON output available for debugging.
 - Simple, modern UI built with HTML/CSS/JS (no external frameworks).
 
@@ -89,6 +93,11 @@ http://127.0.0.1:81
 Health check:
 ```bash
 curl http://127.0.0.1:81/health
+```
+
+Metrics:
+```bash
+curl http://127.0.0.1:81/metrics
 ```
 
 ---

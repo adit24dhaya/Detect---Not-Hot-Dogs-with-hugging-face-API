@@ -175,7 +175,9 @@
           <span class="badge" id="statusBadge">–</span>
         </div>
         <p class="muted" id="predConf">Confidence: –</p>
+        <p class="muted" id="predMeta">Latency: – · Cache: –</p>
         <div class="bar"><div id="confBar"></div></div>
+        <div class="raw" id="top3Box" style="display:none;"></div>
         <div class="raw" id="rawBox" style="display:none;"></div>
         <div class="footer">Powered by Flask & Hugging Face</div>
       </section>
@@ -193,7 +195,9 @@
     const predLabel = document.getElementById('predLabel');
     const statusBadge = document.getElementById('statusBadge');
     const predConf = document.getElementById('predConf');
+    const predMeta = document.getElementById('predMeta');
     const confBar = document.getElementById('confBar');
+    const top3Box = document.getElementById('top3Box');
     const rawBox = document.getElementById('rawBox');
 
     // Drag & drop handling
@@ -238,7 +242,7 @@
       submitSpin.style.display = isLoading ? 'inline-block' : 'none';
     }
 
-    function setResult(ok, label, confidence, raw){
+    function setResult(ok, label, confidence, raw, top3, meta){
       // Main label
       predLabel.textContent = label ? label.toUpperCase() : 'Prediction';
 
@@ -246,6 +250,7 @@
       const pct = Number.isFinite(confidence) ? (confidence * 100).toFixed(1) : '–';
       const topClass = raw && raw.length > 0 ? raw[0].label : '';
       predConf.textContent = `Confidence: ${pct}%` + (topClass ? ` · (${topClass})` : '');
+      predMeta.textContent = `Latency: ${meta?.latency_ms ?? '–'} ms · Cache: ${meta?.cached ? 'HIT' : 'MISS'}`;
 
 
       // bar width
@@ -264,6 +269,15 @@
       } else {
         statusBadge.textContent = 'LOW CONF';
         statusBadge.classList.add('err');
+      }
+
+      if (top3 && top3.length) {
+        const rows = top3.map((x, i) => `${i + 1}. ${x.label} — ${(x.score * 100).toFixed(1)}%`).join('\n');
+        top3Box.style.display = 'block';
+        top3Box.textContent = `Top predictions:\n${rows}`;
+      } else {
+        top3Box.style.display = 'none';
+        top3Box.textContent = '';
       }
 
       // raw JSON
@@ -294,16 +308,20 @@
         }
         const data = await res.json();
         // Expecting your Flask JSON: { label, confidence, raw }
-        setResult(true, data.label, data.confidence, data.raw);
+        setResult(true, data.label, data.confidence, data.raw, data.top3, {
+          cached: data.cached,
+          latency_ms: data.latency_ms,
+          request_id: data.request_id,
+        });
       } catch (err) {
-        setResult(false, 'Error', NaN, { error: String(err) });
+        setResult(false, 'Error', NaN, { error: String(err) }, null, null);
       } finally {
         setLoading(false);
       }
     });
 
     // Initial state
-    setResult(false, '', NaN, null);
+    setResult(false, '', NaN, null, null, null);
   </script>
 </body>
 </html>
