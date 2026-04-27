@@ -16,6 +16,9 @@ If the image is not a hot dog, the app also shows the top predicted class (e.g.,
 - Live preview of the image before submitting.
 - Classification powered by Hugging Face’s hosted models.
 - Confidence bar and status badges (**CONFIDENT / UNCERTAIN / LOW CONF**).
+- Upload validation (type + size) and clearer backend error handling.
+- Health endpoint for deployment checks: `GET /health`.
+- Top-3 prediction payload returned from API for richer UI extensions.
 - Raw JSON output available for debugging.
 - Simple, modern UI built with HTML/CSS/JS (no external frameworks).
 
@@ -83,6 +86,11 @@ By default, the app runs at:
 http://127.0.0.1:81
 ```
 
+Health check:
+```bash
+curl http://127.0.0.1:81/health
+```
+
 ---
 
 ## 🖥️ Usage
@@ -119,3 +127,10 @@ MIT License. Free to use and modify.
 ## 🙌 Acknowledgements
 - Hugging Face for the awesome model hosting.  
 - Food-101 dataset & Hotdog-NotHotdog meme inspiration.
+
+---
+
+## 🧪 Testing
+```bash
+python -m pytest -q
+```
